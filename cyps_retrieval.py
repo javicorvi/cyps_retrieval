@@ -58,16 +58,37 @@ def generate_terms_for_gene_name(geneNames, data, new_result):
     geneNames_data = set(geneNames_data)
     for gn in geneNames_data:
         #new_result.write(data[0]+'\t'+data[1]+'\t'+data[2]+'\t'+data[3]+'\t'+gn+'\t'+data[5]+'\t'+data[6])
-        new_result.write(data[0]+'\t'+data[1]+'\t'+gn+'\n')
-             
+        #new_result.write(data[0]+'\t'+data[1]+'\t'+gn+'\n')
         if(gn.startswith("CYP")):
+            generate_variations(gn, data, new_result)
+            gn=gn.lower()
+            generate_variations(gn, data, new_result)
+            new_result.flush()
+            gn = gn[:0]+'C'+gn[1:]
             generate_variations(gn, data, new_result)
         new_result.flush()   
         
         
 def generate_variations(gn, data, new_result):
-    #s = re.search(r"\d+(\.\d+)?", gn)
-    #d = s.group(1)
+    try:
+        pattern = re.compile(r'([A-Z]+)([0-9]+)([A-Z]+)([0-9]+)')
+        divi = [""," ","-","/","*"]
+        variants = []
+        for (cyp, number, fam, sub ) in re.findall(pattern, gn):
+            for d in divi:
+                for d2 in divi:
+                    for d3 in divi:
+                        variants.append(''.join((cyp, d, number, d2,fam, d3, sub ))) 
+                        
+        #print variants   
+        for vari in variants:
+            new_result.write(data[0]+'\t'+data[1]+'\t'+vari+'\n')     
+        new_result.flush()
+    except Exception as inst:
+        print gn     
+    '''
+    s = re.search(r"\d+(\D+\d+\D+)?", gn)
+    d = s.group(0)
     divi = [" ","-","/","*"]
     for d in divi:
         with_1 = gn[:3] + d + gn[3:]
@@ -81,13 +102,13 @@ def generate_variations(gn, data, new_result):
             with_12 = gn[:3] + d2 + gn[3:4] + d + gn[4:] 
             new_result.write(data[0]+'\t'+data[1]+'\t'+with_11+'\n')  
             new_result.write(data[0]+'\t'+data[1]+'\t'+with_12+'\n')
-            '''for d3 in divi:
-                with_11 = gn[:3] + d + gn[3:] + gn[:4] + d2 + gn[4:] + d3 + gn[5:]
-                with_12 = gn[:3] + d3 + gn[3:] + gn[:4] + d + gn[4:] + d + gn[5:]
+            for d3 in divi:
+                with_11 = gn[:3] + d + gn[3:4] + d2 + gn[4:5] + d2 + gn[4:]
+                with_11 = gn[:3] + d + gn[3:4] + d2 + gn[4:]
                 new_result.write(data[0]+'\t'+data[1]+'\t'+with_11+'\n')        
-                new_result.write(data[0]+'\t'+data[1]+'\t'+with_12+'\n')'''   
+                new_result.write(data[0]+'\t'+data[1]+'\t'+with_12+'\n')  
     new_result.flush()   
-    print ""       
+    print ""'''       
 def download_cyps(uniprot_search_query, outputFile):
     logging.info("Downloading CYPs Query : " + uniprot_search_query )
     url = 'https://www.uniprot.org/uniprot/'
